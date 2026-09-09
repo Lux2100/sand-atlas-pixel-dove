@@ -18,7 +18,23 @@ export type ClinicData = {
   reservations: Reservation[];
   consults: Consult[];
   houseIds: string[];
+  scratchNote: string;
 };
+
+/** Additive patches for `aura-clinic-v6`. Never drops collections or changes the persist key. */
+export function migrateClinicSnapshot(persisted: Partial<ClinicData> | undefined, current: ClinicData): ClinicData {
+  const p = persisted ?? {};
+  return {
+    patients: p.patients ?? current.patients,
+    visits: p.visits ?? current.visits,
+    photos: p.photos ?? current.photos,
+    showcases: p.showcases ?? current.showcases,
+    reservations: p.reservations ?? current.reservations,
+    consults: p.consults ?? current.consults,
+    houseIds: p.houseIds?.length ? p.houseIds : current.houseIds,
+    scratchNote: typeof p.scratchNote === "string" ? p.scratchNote : "",
+  };
+}
 
 type PatientInput = Partial<Patient> & Pick<Patient, "name">;
 type VisitInput = Partial<Visit> & Pick<Visit, "patientId" | "date" | "treatments">;
@@ -45,6 +61,7 @@ export type ClinicState = ClinicData & {
   toggleHouse: (treatmentId: string) => void;
   isHouse: (treatmentId: string) => boolean;
   setVisitStatus: (id: string, status: VisitStatus) => void;
+  setScratchNote: (note: string) => void;
 };
 
 export function paidOf(v: Visit) {
@@ -270,6 +287,10 @@ export const useClinicStore = create<ClinicState>()(
           visits: get().visits.map((v) => (v.id === id ? { ...v, status } : v)),
         });
       },
+
+      setScratchNote: (note) => {
+        set({ scratchNote: note });
+      },
     }),
     {
       name: PERSIST_KEY,
@@ -283,18 +304,13 @@ export const useClinicStore = create<ClinicState>()(
         reservations: s.reservations,
         consults: s.consults,
         houseIds: s.houseIds,
+        scratchNote: s.scratchNote,
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<ClinicData>;
         return {
           ...current,
-          patients: p.patients ?? current.patients,
-          visits: p.visits ?? current.visits,
-          photos: p.photos ?? current.photos,
-          showcases: p.showcases ?? current.showcases,
-          reservations: p.reservations ?? current.reservations,
-          consults: p.consults ?? current.consults,
-          houseIds: p.houseIds?.length ? p.houseIds : current.houseIds,
+          ...migrateClinicSnapshot(p, current),
         };
       },
     },

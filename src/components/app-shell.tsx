@@ -1,7 +1,10 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, ClipboardList, Home, Images, Layers, ScanFace, Sparkles } from "lucide-react";
+import { CalendarDays, ClipboardList, Home, Images, Layers, ScanFace, Sparkles, StickyNote } from "lucide-react";
+import { useClinicStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const NAV = [
   { to: "/", label: "홈", icon: Home },
@@ -28,9 +31,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link to="/" className="flex flex-col items-center px-2 py-5 md:items-start md:px-5">
           <span className="font-display text-2xl leading-none tracking-wide text-sage md:hidden">A</span>
           <span className="hidden font-display text-2xl leading-none tracking-wide text-sage md:block">AURA</span>
-          <span className="mt-1 hidden text-[11px] text-muted md:block">원내 차트</span>
+          <span className="mt-1 hidden text-xs text-muted md:block">원내 차트</span>
         </Link>
-        <nav className="flex flex-1 flex-col gap-1 px-2 pb-4 md:px-3">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 px-2 pb-4 md:px-3">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = isActive(pathname, item.to);
@@ -58,11 +61,50 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+          <ScratchPad />
         </nav>
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
         <div className="mx-auto w-full max-w-5xl">{children}</div>
       </main>
     </div>
+  );
+}
+
+function ScratchPad() {
+  const note = useClinicStore((s) => s.scratchNote);
+  const setScratchNote = useClinicStore((s) => s.setScratchNote);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        className="mt-1 flex h-11 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-ink md:hidden"
+        onClick={() => setOpen(true)}
+      >
+        <StickyNote className="size-4" />
+        <span className="sr-only">간단 메모</span>
+      </button>
+      <div className="mt-3 hidden min-h-0 flex-1 flex-col md:flex">
+        <p className="px-1 text-xs text-muted">간단 메모</p>
+        <textarea
+          value={note}
+          onChange={(e) => setScratchNote(e.target.value)}
+          placeholder="접수 · 전달사항"
+          className="mt-1 min-h-24 w-full flex-1 resize-none rounded-md border border-border bg-surface-2 px-2.5 py-2 text-sm text-ink outline-none placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-ring/40"
+        />
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent title="간단 메모">
+          <Textarea
+            value={note}
+            onChange={(e) => setScratchNote(e.target.value)}
+            placeholder="접수 · 전달사항"
+            className="mt-4 min-h-40"
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

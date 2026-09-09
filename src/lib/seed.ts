@@ -10,6 +10,7 @@ export type ClinicSeed = {
   reservations: Reservation[];
   consults: Consult[];
   houseIds: string[];
+  scratchNote: string;
 };
 
 export function makeSeed(): ClinicSeed {
@@ -410,5 +411,6 @@ export function makeSeed(): ClinicSeed {
     reservations,
     consults,
     houseIds: HOUSE_TREATMENTS.map((t) => t.id),
+    scratchNote: "",
   };
 }
