@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --color-bg: #f3efe6;
+  --color-surface: #fbf8f2;
+  --color-surface-2: #eee7db;
+  --color-ink: #1c1915;
+  --color-muted: #6d675e;
+  --color-subtle: #958e83;
+  --color-sage: #3e5a4c;
+  --color-sage-fg: #f6f2ea;
+  --color-sage-soft: #e4ebe6;
+  --color-border: #ddd4c6;
+  --color-danger: #a61b1b;
+  --color-ring: #3e5a4c;
+  --color-consult: #d46a2c;
+  --color-consult-fg: #fff8f3;
+  --color-prep: #2f7a45;
+  --color-prep-fg: #f3faf5;
+  --color-done: #1c1915;
+  --color-done-fg: #f6f2ea;
+
+  --font-sans: "IBM Plex Sans KR", "Noto Sans KR", "Segoe UI", sans-serif;
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --shadow-card: 0 1px 0 rgba(28, 25, 21, 0.04), 0 12px 32px -18px rgba(28, 25, 21, 0.18);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  html, body, #app {
+    min-height: 100%;
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+  body { font-family: var(--font-sans); }
+  button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
+}
+
+.memo-body span[style*="#a61b1b"] { color: var(--color-danger); }

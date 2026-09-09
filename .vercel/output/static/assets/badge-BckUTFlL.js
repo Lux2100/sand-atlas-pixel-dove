@@ -1,0 +1,1 @@
+import{a as e,i as t,t as n}from"./utils-DRgRV1Qt.js";e();var r=t();function i({className:e,tone:t=`default`,...i}){return(0,r.jsx)(`span`,{className:n(`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium`,t===`sage`?`bg-sage-soft text-sage`:`bg-surface-2 text-muted`,e),...i})}export{i as t};
