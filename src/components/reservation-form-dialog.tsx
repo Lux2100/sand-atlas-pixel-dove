@@ -20,6 +20,7 @@ type Props = {
 export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
   const patients = useClinicStore((s) => s.patients);
   const upsertReservation = useClinicStore((s) => s.upsertReservation);
+  const upsertPatient = useClinicStore((s) => s.upsertPatient);
   const [date, setDate] = useState(todayISO());
   const [time, setTime] = useState(() => clinicTime(nowTime()));
   const [name, setName] = useState("");
@@ -67,14 +68,31 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
   const submit = () => {
     const trimmed = name.trim();
     if (!trimmed || !date) return;
+    const no = chartNo.trim();
+    let linkedId = patientId;
+    if (!linkedId) {
+      const exact = no
+        ? patients.find((p) => p.chartNo.trim().toLowerCase() === no.toLowerCase())
+        : undefined;
+      if (exact) {
+        linkedId = exact.id;
+      } else if (!initial?.patientId) {
+        linkedId = upsertPatient({
+          name: trimmed,
+          phone: phone.trim() || undefined,
+          chartNo: no,
+          gender: gender || undefined,
+        }).id;
+      }
+    }
     upsertReservation({
       id: initial?.id ?? uid("r"),
       date,
       time: clinicTime(time),
       name: trimmed,
       phone: phone.trim() || undefined,
-      patientId,
-      chartNo: chartNo.trim() || undefined,
+      patientId: linkedId,
+      chartNo: no || undefined,
       gender: gender || undefined,
       treatments: treatments.length ? treatments : undefined,
       note: note.trim(),
