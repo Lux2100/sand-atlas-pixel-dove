@@ -13,17 +13,19 @@ type MemoEditorProps = {
 
 export function MemoEditor({ value, onChange, className }: MemoEditorProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const focused = useRef(false);
+  const composing = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || focused.current) return;
     const next = value ?? "";
     if (el.innerHTML !== next) el.innerHTML = next;
   }, [value]);
 
   const emit = () => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || composing.current) return;
     onChange(sanitizeMemo(el.innerHTML));
   };
 
@@ -82,11 +84,23 @@ export function MemoEditor({ value, onChange, className }: MemoEditorProps) {
       <div
         ref={ref}
         contentEditable
+        suppressContentEditableWarning
         role="textbox"
         aria-label="시술 메모"
         className="memo-body min-h-24 px-3 py-2 text-sm leading-relaxed text-ink outline-none"
+        onFocus={() => {
+          focused.current = true;
+        }}
+        onCompositionStart={() => {
+          composing.current = true;
+        }}
+        onCompositionEnd={() => {
+          composing.current = false;
+          emit();
+        }}
         onInput={emit}
         onBlur={() => {
+          focused.current = false;
           const el = ref.current;
           if (!el) return;
           const html = sanitizeMemo(el.innerHTML);
