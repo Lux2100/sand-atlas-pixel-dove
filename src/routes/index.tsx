@@ -126,6 +126,7 @@ function Home() {
                   visit={v}
                   name={p?.name ?? "삭제된 차트"}
                   chartNo={p?.chartNo}
+                  chartMemo={p?.memo}
                   onOpen={() => p && navigate({ to: "/patients/$id", params: { id: p.id } })}
                   onStatus={(status) => setVisitStatus(v.id, status)}
                 />
@@ -196,17 +197,20 @@ function TodayVisitRow({
   visit,
   name,
   chartNo,
+  chartMemo,
   onOpen,
   onStatus,
 }: {
   visit: Visit;
   name: string;
   chartNo?: string;
+  chartMemo?: string;
   onOpen: () => void;
   onStatus: (status: VisitStatus) => void;
 }) {
   const status = visit.status ?? "prep";
   const memo = memoToPlain(visit.memo);
+  const chartText = memoToPlain(chartMemo);
   return (
     <li className="grid gap-2 rounded-lg border border-border bg-surface px-3 py-3 sm:px-4">
       <button type="button" className="min-w-0 text-left hover:text-sage" onClick={onOpen}>
@@ -215,6 +219,7 @@ function TodayVisitRow({
           <span className="font-medium">{name}</span>
           {chartNo ? <span className="text-xs text-muted">{chartNo}</span> : null}
         </span>
+        {chartText ? <p className="mt-1 line-clamp-2 text-sm text-danger">{chartText}</p> : null}
         {memo ? <p className="mt-1 line-clamp-2 text-sm text-ink/80">{memo}</p> : null}
         {visit.treatments.length ? (
           <p className="mt-1 truncate text-xs text-muted">{visit.treatments.join(" · ")}</p>

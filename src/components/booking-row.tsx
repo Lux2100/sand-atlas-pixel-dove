@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatTime } from "@/lib/format";
+import { memoToPlain } from "@/lib/memo";
 import type { DayBooking } from "@/lib/reservations";
 import { useClinicStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,11 @@ type Props = {
 export function BookingRow({ booking, onToggleCancel }: Props) {
   const upsertReservation = useClinicStore((s) => s.upsertReservation);
   const upsertPatient = useClinicStore((s) => s.upsertPatient);
+  const arriveBooking = useClinicStore((s) => s.arriveBooking);
   const [chartOpen, setChartOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const missingChart = !booking.patientId;
+  const chartMemo = memoToPlain(booking.chartMemo);
 
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 sm:px-4">
@@ -36,6 +39,7 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
           {missingChart ? <Badge>신환 · 차트 없음</Badge> : null}
           {booking.cancelled ? <Badge className="bg-danger/10 text-danger">예약 취소</Badge> : null}
         </div>
+        {chartMemo ? <p className="mt-0.5 line-clamp-2 text-xs text-danger">{chartMemo}</p> : null}
         {booking.treatments?.length ? (
           <p className="mt-0.5 truncate text-xs text-muted">{booking.treatments.join(" · ")}</p>
         ) : booking.note ? (
@@ -54,6 +58,11 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
         <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
           수정
         </Button>
+        {!booking.cancelled ? (
+          <Button size="sm" variant="soft" onClick={() => arriveBooking(booking)}>
+            내원
+          </Button>
+        ) : null}
         <Button
           size="sm"
           variant="ghost"
@@ -94,6 +103,8 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
           name: booking.name,
           phone: booking.phone,
           patientId: booking.patientId,
+          chartNo: booking.chartNo,
+          gender: booking.gender,
           treatments: booking.treatments,
           note: booking.source === "nextVisit" && booking.note === "다음 내원" ? "" : booking.note,
           cancelled: booking.cancelled,

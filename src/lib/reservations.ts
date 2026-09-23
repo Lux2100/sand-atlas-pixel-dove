@@ -9,6 +9,8 @@ export type DayBooking = {
   phone?: string;
   patientId?: string;
   chartNo?: string;
+  gender?: "F" | "M";
+  chartMemo?: string;
   treatments: string[];
   note?: string;
   source: "manual" | "nextVisit";
@@ -73,7 +75,9 @@ export function bookingsForDate(
       name: p?.name ?? r.name,
       phone: r.phone ?? p?.phone,
       patientId: r.patientId,
-      chartNo: p?.chartNo,
+      chartNo: p?.chartNo || r.chartNo,
+      gender: p?.gender ?? r.gender,
+      chartMemo: p?.memo,
       treatments: r.treatments ?? [],
       note: r.note,
       source: "manual",
@@ -102,6 +106,8 @@ export function bookingsForDate(
       phone: p.phone,
       patientId: p.id,
       chartNo: p.chartNo,
+      gender: p.gender,
+      chartMemo: p.memo,
       treatments: v.treatments,
       note: "다음 내원",
       source: "nextVisit",

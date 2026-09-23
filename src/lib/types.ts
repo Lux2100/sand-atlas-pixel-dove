@@ -77,6 +77,8 @@ export type Reservation = {
   name: string;
   phone?: string;
   patientId?: string;
+  chartNo?: string;
+  gender?: "F" | "M";
   treatments?: string[];
   note?: string;
   cancelled?: boolean;

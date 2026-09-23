@@ -56,6 +56,7 @@ export type ClinicState = ClinicData & {
   upsertReservation: (input: ReservationInput) => Reservation;
   removeReservation: (id: string) => void;
   toggleBookingCancel: (booking: DayBooking) => void;
+  arriveBooking: (booking: DayBooking) => void;
   addConsult: (input: ConsultInput) => Consult;
   removeConsult: (id: string) => void;
   toggleHouse: (treatmentId: string) => void;
@@ -198,6 +199,8 @@ export const useClinicStore = create<ClinicState>()(
           name: input.name,
           phone: input.phone ?? existing?.phone,
           patientId: input.patientId ?? existing?.patientId,
+          chartNo: input.chartNo !== undefined ? input.chartNo.trim() || undefined : existing?.chartNo,
+          gender: input.gender !== undefined ? input.gender : existing?.gender,
           treatments: input.treatments ?? existing?.treatments,
           note: input.note !== undefined ? input.note.trim() || undefined : existing?.note,
           cancelled: input.cancelled ?? existing?.cancelled,
@@ -261,6 +264,60 @@ export const useClinicStore = create<ClinicState>()(
           source: "cancel",
         };
         set({ visits: [...get().visits, visit] });
+      },
+
+      arriveBooking: (booking) => {
+        if (booking.cancelled) return;
+        let patient = booking.patientId
+          ? get().patients.find((p) => p.id === booking.patientId)
+          : undefined;
+        if (!patient && booking.chartNo?.trim()) {
+          const key = booking.chartNo.trim();
+          patient = get().patients.find((p) => p.chartNo.trim() === key);
+        }
+        if (!patient) {
+          patient = get().upsertPatient({
+            name: booking.name,
+            phone: booking.phone,
+            chartNo: booking.chartNo ?? "",
+            gender: booking.gender,
+          });
+        } else if ((!patient.gender && booking.gender) || (!patient.chartNo.trim() && booking.chartNo)) {
+          patient = get().upsertPatient({
+            id: patient.id,
+            name: patient.name,
+            gender: patient.gender ?? booking.gender,
+            chartNo: patient.chartNo.trim() ? patient.chartNo : (booking.chartNo ?? ""),
+          });
+        }
+        const arrived = get().visits.some(
+          (v) => v.patientId === patient.id && v.date === booking.date && v.source !== "cancel",
+        );
+        if (!arrived) {
+          get().upsertVisit({
+            patientId: patient.id,
+            date: booking.date,
+            time: booking.time,
+            treatments: booking.treatments ?? [],
+            memo: booking.note && booking.note !== "다음 내원" ? booking.note : undefined,
+            status: "consult",
+          });
+        }
+        if (booking.source === "manual") {
+          get().upsertReservation({
+            id: booking.id,
+            date: booking.date,
+            time: booking.time,
+            name: patient.name,
+            phone: booking.phone ?? patient.phone,
+            patientId: patient.id,
+            chartNo: patient.chartNo || booking.chartNo,
+            gender: patient.gender ?? booking.gender,
+            treatments: booking.treatments,
+            note: booking.note,
+            cancelled: booking.cancelled,
+          });
+        }
       },
 
       addConsult: (input) => {
