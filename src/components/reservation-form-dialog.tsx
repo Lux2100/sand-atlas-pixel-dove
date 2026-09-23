@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { nowTime, snapVisitTime, todayISO } from "@/lib/format";
+import { clinicTime, nowTime, todayISO } from "@/lib/format";
 import { useClinicStore } from "@/lib/store";
 import type { Reservation } from "@/lib/types";
 import { uid } from "@/lib/utils";
@@ -17,18 +17,11 @@ type Props = {
   initial?: Partial<Reservation>;
 };
 
-function reserveTime(t?: string) {
-  const snapped = snapVisitTime(t);
-  const h = Number(snapped.slice(0, 2));
-  const hour = h < 8 ? 8 : h > 20 ? 20 : h;
-  return `${String(hour).padStart(2, "0")}:${snapped.slice(3, 5)}`;
-}
-
 export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
   const patients = useClinicStore((s) => s.patients);
   const upsertReservation = useClinicStore((s) => s.upsertReservation);
   const [date, setDate] = useState(todayISO());
-  const [time, setTime] = useState(() => reserveTime(nowTime()));
+  const [time, setTime] = useState(() => clinicTime(nowTime()));
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [chartNo, setChartNo] = useState("");
@@ -43,7 +36,7 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
       ? useClinicStore.getState().patients.find((p) => p.id === initial.patientId)
       : undefined;
     setDate(initial?.date ?? todayISO());
-    setTime(reserveTime(initial?.time ?? nowTime()));
+    setTime(clinicTime(initial?.time ?? nowTime()));
     setName(initial?.name ?? "");
     setPhone(initial?.phone ?? linked?.phone ?? "");
     setChartNo(initial?.chartNo ?? linked?.chartNo ?? "");
@@ -77,7 +70,7 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
     upsertReservation({
       id: initial?.id ?? uid("r"),
       date,
-      time: reserveTime(time),
+      time: clinicTime(time),
       name: trimmed,
       phone: phone.trim() || undefined,
       patientId,
@@ -107,7 +100,7 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
             </div>
             <div className="grid gap-1.5">
               <Label>시간</Label>
-              <TimeSelect value={time} onChange={(next) => setTime(reserveTime(next))} minHour={8} maxHour={20} />
+              <TimeSelect value={time} onChange={(next) => setTime(clinicTime(next))} minHour={8} maxHour={20} />
             </div>
           </div>
           <div className="grid gap-1.5">

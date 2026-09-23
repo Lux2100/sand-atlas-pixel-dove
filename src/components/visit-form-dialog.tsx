@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { nowTime, snapVisitTime, todayISO } from "@/lib/format";
+import { clinicTime, nowTime, todayISO } from "@/lib/format";
 import { CATEGORY_LABEL, CATEGORY_ORDER, TREATMENTS, matchesTreatment, sortHouseFirst } from "@/lib/procedures";
 import { useClinicStore } from "@/lib/store";
 import type { TreatmentCategory, Visit } from "@/lib/types";
@@ -25,7 +25,7 @@ function fillFrom(visit: Visit | undefined) {
   const editing = Boolean(visit?.id);
   return {
     date: visit?.date ?? todayISO(),
-    time: visit?.time ? snapVisitTime(visit.time) : editing ? "10:00" : nowTime(),
+    time: visit?.time ? clinicTime(visit.time) : editing ? "10:00" : clinicTime(nowTime()),
     nextVisit: visit?.nextVisit ?? "",
     treatments: visit?.treatments ?? [],
     memo: visit?.memo ?? "",
@@ -42,7 +42,7 @@ function parseAmount(raw: string): number | undefined {
 
 export function VisitFormDialog({ open, onOpenChange, patientId, initial, onSave }: Props) {
   const [date, setDate] = useState(todayISO());
-  const [time, setTime] = useState(nowTime());
+  const [time, setTime] = useState(() => clinicTime(nowTime()));
   const [nextVisit, setNextVisit] = useState("");
   const [treatments, setTreatments] = useState<string[]>([]);
   const [memo, setMemo] = useState("");
@@ -69,7 +69,7 @@ export function VisitFormDialog({ open, onOpenChange, patientId, initial, onSave
       id: initial?.id ?? uid("v"),
       patientId,
       date,
-      time,
+      time: clinicTime(time),
       treatments,
       memo: memo || undefined,
       nextVisit: nextVisit || undefined,
@@ -98,7 +98,7 @@ export function VisitFormDialog({ open, onOpenChange, patientId, initial, onSave
             </div>
             <div className="grid gap-1.5">
               <Label>시간</Label>
-              <TimeSelect value={time} onChange={setTime} />
+              <TimeSelect value={time} onChange={(next) => setTime(clinicTime(next))} minHour={8} maxHour={20} />
             </div>
           </div>
           <div className="grid gap-1.5">

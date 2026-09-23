@@ -51,6 +51,14 @@ export function snapVisitTime(t?: string) {
   return `${String(h).padStart(2, "0")}:${snapped}`;
 }
 
+/** Clinic hours for reservations and visit records: 08:00–20:30. */
+export function clinicTime(t?: string) {
+  const snapped = snapVisitTime(t);
+  const h = Number(snapped.slice(0, 2));
+  const hour = h < 8 ? 8 : h > 20 ? 20 : h;
+  return `${String(hour).padStart(2, "0")}:${snapped.slice(3, 5)}`;
+}
+
 export function nowTime() {
   const d = new Date();
   return snapVisitTime(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);

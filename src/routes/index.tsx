@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookingRow } from "@/components/booking-row";
 import { PatientFormDialog } from "@/components/patient-form-dialog";
+import { ReservationFormDialog } from "@/components/reservation-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { dayOffset, formatDate, formatTime, formatWon, todayISO } from "@/lib/format";
@@ -31,6 +32,7 @@ function Home() {
   const setVisitStatus = useClinicStore((s) => s.setVisitStatus);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [reserveOpen, setReserveOpen] = useState(false);
   const today = todayISO();
   const tomorrow = dayOffset(1);
   const todayRev = todaySales(visits, today);
@@ -102,8 +104,8 @@ function Home() {
         <HeaderRow
           title="오늘 예약"
           count={todayBookCount}
-          action="예약관리"
-          onAction={() => navigate({ to: "/reservations" })}
+          action="예약추가"
+          onAction={() => setReserveOpen(true)}
         />
         {todayBooks.length === 0 ? (
           <Empty>오늘 잡힌 예약이 없습니다.</Empty>
@@ -163,6 +165,7 @@ function Home() {
           navigate({ to: "/patients/$id", params: { id: created.id } });
         }}
       />
+      <ReservationFormDialog open={reserveOpen} onOpenChange={setReserveOpen} />
     </div>
   );
 }
