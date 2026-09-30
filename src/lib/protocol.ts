@@ -11,6 +11,7 @@ export const PROTOCOLS: TreatmentProtocol[] = [
   { treatmentId: "filorga", interval: "1–2주", sessions: "3–5회 후 유지 월 1", note: "NCTF 물광. 광채·결." },
   { treatmentId: "juvelook", interval: "3–4주", sessions: "3회 코스", note: "모공·흉터. 부종 고지. 원내 추천." },
   { treatmentId: "rejuran", interval: "2–4주", sessions: "3–4회", note: "재생·장벽. 시술 직후 구진 안내." },
+  { treatmentId: "rejuran-i", interval: "2–3주", sessions: "3회", tip: "눈가 소량", note: "아이리쥬란. 눈밑·눈가 얇은 피부. 깊은 볼륨은 필러." },
   { treatmentId: "pdrn", interval: "1–2주", sessions: "3–5회", note: "진정·회복. 레이저 후 병행." },
   { treatmentId: "ultracol", interval: "4주", sessions: "2–3회", note: "PDO 콜라겐. 마사지 금지 안내." },
   { treatmentId: "sculptra", interval: "4–6주", sessions: "2–3회", note: "PLLA. 5-5-5 마사지." },

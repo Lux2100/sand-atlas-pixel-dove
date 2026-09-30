@@ -63,6 +63,9 @@ export const TREATMENTS: Treatment[] = [
     house: true,
     aliases: ["Rejuran", "리주란", "연어주사"],
   }),
+  T("rejuran-i", "아이리쥬란", "injectable", "리쥬란 I. 눈가·눈밑 얇은 피부 재생. 잔주름·다크서클.", ["눈가", "눈밑", "잔주름", "다크서클"], {
+    aliases: ["아이리주란", "리쥬란아이", "리쥬란 I", "리쥬란I", "Rejuran I", "Rejuran Eye"],
+  }),
   T("pdrn", "PDRN", "injectable", "폴리데옥시리보뉴클레오티드 재생주사. 회복·진정.", ["재생", "진정", "홍조", "회복"], {
     house: true,
     aliases: ["피디알엔", "폴리뉴클레오티드", "PN"],
