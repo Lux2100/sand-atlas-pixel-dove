@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { clinicTime, nowTime, todayISO } from "@/lib/format";
+import { displayCopy } from "@/lib/memo";
 import { useClinicStore } from "@/lib/store";
 import type { Reservation } from "@/lib/types";
 import { uid } from "@/lib/utils";
@@ -45,7 +46,7 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
     setGender(initial?.gender ?? linked?.gender ?? "");
     setPatientId(initial?.patientId);
     setTreatments(initial?.treatments ?? []);
-    setNote(initial?.note ?? "");
+    setNote(displayCopy(initial?.note ?? ""));
     fromChart.current = Boolean(initial?.patientId);
   }, [open, initial?.id]);
 

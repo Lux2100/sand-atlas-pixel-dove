@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+const AI_NOTICE = "AI 제안은 참고용이며, 진단·시술 여부와 용량은 반드시 의료진이 최종 판단합니다.";
+
 export const Route = createFileRoute("/analyze")({
   validateSearch: (search: Record<string, unknown>): { patientId?: string } => {
     const patientId = typeof search.patientId === "string" ? search.patientId : undefined;
@@ -42,6 +44,7 @@ function AnalyzePage() {
   const [patientId, setPatientId] = useState<string | undefined>(initialPatientId);
   const [pq, setPq] = useState("");
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
   const selected = patients.find((p) => p.id === patientId);
   const matches = useMemo(() => searchPatients(patients, visits, pq).slice(0, 6), [patients, visits, pq]);
   const catalog = useMemo(
@@ -69,7 +72,7 @@ function AnalyzePage() {
   };
 
   const run = async () => {
-    if (images.length === 0) return;
+    if (images.length === 0 || !consent) return;
     setBusy(true);
     setError(null);
     setSavedId(null);
@@ -92,7 +95,7 @@ function AnalyzePage() {
   return (
     <div className="grid gap-6">
       <div>
-        <p className="text-xs text-muted">AI 상담</p>
+        <p className="text-xs text-muted">AI상담</p>
         <h1 className="font-display text-4xl tracking-tight">얼굴 사진으로 계획</h1>
       </div>
       <div className="grid gap-6 md:grid-cols-2 md:items-start">
@@ -165,6 +168,15 @@ function AnalyzePage() {
               </Button>
             ) : null}
           </div>
+          <label className="flex items-start gap-2 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0 accent-sage"
+            />
+            <span>환자에게 사진 촬영·분석 동의를 받았습니다.</span>
+          </label>
           {images.length > 0 ? (
             <ul className="grid grid-cols-2 gap-3">
               {images.map((src, i) => (
@@ -177,12 +189,15 @@ function AnalyzePage() {
             <p className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted">정면 사진을 올리면 분석이 정확합니다.</p>
           )}
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="손님이 말한 고민, 최근 시술" />
-          <Button disabled={busy || images.length === 0 || (linkChart && !patientId)} onClick={() => void run()}>
+          <p className="rounded-lg border border-sage/30 bg-sage-soft px-3 py-2 text-sm text-ink">{AI_NOTICE}</p>
+          <Button disabled={busy || !consent || images.length === 0 || (linkChart && !patientId)} onClick={() => void run()}>
             {busy ? "분석 중…" : linkChart ? "분석하고 차트에 저장" : "시술 계획 보기"}
           </Button>
+          {!consent ? <p className="text-xs text-muted">사진 동의를 확인해야 시술 계획을 볼 수 있습니다.</p> : null}
         </div>
         <div className="rounded-xl border border-border bg-surface p-5 md:sticky md:top-6 md:min-h-[28rem]">
-          <p className="text-xs text-muted">시술 계획</p>
+          <p className="rounded-lg border border-sage/30 bg-sage-soft px-3 py-2 text-sm text-ink">{AI_NOTICE}</p>
+          <p className="mt-4 text-xs text-muted">시술 계획</p>
           {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
           {savedId && selected ? (
             <div className="mt-3 flex items-center justify-between rounded-lg bg-sage-soft px-3 py-2">
@@ -238,5 +253,5 @@ function Result({ analysis }: { analysis: FaceAnalysis }) {
 function formatFallback(name: string) {
   const p = protocolByName(name);
   if (!p) return "";
-  return [p.energy, p.tip, `${p.interval} 간격`, p.sessions].filter(Boolean).join(" · ");
+  return [p.energy && `에너지 ${p.energy}`, p.tip && `팁 ${p.tip}`, p.depth && `깊이 ${p.depth}`, `간격 ${p.interval}`, `횟수 ${p.sessions}`].filter(Boolean).join(" · ");
 }

@@ -3,6 +3,8 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { StoreHydrator } from "@/components/store-hydrator";
 import { AppShell } from "@/components/app-shell";
+import { AccessGate } from "@/components/access-gate";
+import { NotFoundPage } from "@/components/not-found";
 import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
@@ -30,6 +32,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: Root,
+  notFoundComponent: NotFoundPage,
 });
 
 function Root() {
@@ -42,9 +45,11 @@ function Root() {
         <PreviewHostBridge />
         <AuthProvider>
           <StoreHydrator />
-          <AppShell>
-            <Outlet />
-          </AppShell>
+          <AccessGate>
+            <AppShell>
+              <Outlet />
+            </AppShell>
+          </AccessGate>
           <Toaster position="top-right" richColors={false} />
         </AuthProvider>
         <Scripts />

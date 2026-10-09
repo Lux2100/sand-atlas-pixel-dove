@@ -109,7 +109,7 @@ export function VisitFormDialog({ open, onOpenChange, patientId, initial, onSave
             <Label>시술</Label>
             <TreatmentPicker value={treatments} onChange={setTreatments} />
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 min-w-0">
             <AmountField label="결제" value={paid} onChange={setPaid} />
             <AmountField label="충전" value={recharge} onChange={setRecharge} />
             <AmountField label="차감" value={redeem} onChange={setRedeem} />

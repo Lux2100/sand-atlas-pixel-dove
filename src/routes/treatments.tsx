@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BOTOX_BRANDS, BOTOX_REGION_LABEL } from "@/lib/botox";
 import { FILLERS, FILLER_REGION_LABEL } from "@/lib/fillers";
 import { CATEGORY_LABEL, CATEGORY_ORDER, TREATMENTS, matchesTreatment, sortHouseFirst } from "@/lib/procedures";
-import { formatProtocol, protocolOf } from "@/lib/protocol";
+import { protocolOf } from "@/lib/protocol";
 import { useClinicStore } from "@/lib/store";
-import type { TreatmentCategory } from "@/lib/types";
+import type { TreatmentCategory, TreatmentProtocol } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,8 @@ function TreatmentsPage() {
       <div>
         <p className="text-xs text-muted">시술 가이드</p>
         <h1 className="font-display text-4xl tracking-tight">원내 메뉴</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted">주력을 선택하면 AI 상담이 그 시술을 먼저 권합니다.</p>
+        <p className="mt-2 text-xs text-muted">원내 참고용 일반 범위이며, 실제 설정은 장비 매뉴얼과 의료진 판단을 따릅니다.</p>
+        <p className="mt-2 max-w-xl text-sm text-muted">주력을 선택하면 AI상담이 그 시술을 먼저 권합니다.</p>
       </div>
       <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="시술명, 별칭, 고민" />
       <div className="flex flex-wrap gap-1">
@@ -91,8 +92,7 @@ function TreatmentsPage() {
                       {house ? <Badge tone="sage">주력</Badge> : null}
                     </div>
                     <p className="mt-2 text-sm text-ink/80">{t.summary}</p>
-                    {proto ? <p className="mt-2 text-sm text-sage">{formatProtocol(proto)}</p> : null}
-                    {proto?.note ? <p className="mt-1 text-xs text-muted">{proto.note}</p> : null}
+                    {proto ? <ProtocolFacts proto={proto} summary={t.summary} /> : null}
                     <p className="mt-2 text-xs text-muted">{t.concerns.join(" · ")}</p>
                   </div>
                   <Button size="sm" variant={house ? "default" : "outline"} onClick={() => toggleHouse(t.id)}>
@@ -104,6 +104,41 @@ function TreatmentsPage() {
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+function extraNote(note: string | undefined, summary: string) {
+  if (!note || summary.includes(note)) return "";
+  const parts = note
+    .split(/(?<=[.。])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const kept = parts.filter((part) => {
+    const core = part.replace(/[.。]$/, "").trim();
+    return core.length > 1 && !summary.includes(core);
+  });
+  return kept.join(" ");
+}
+
+function ProtocolFacts({ proto, summary }: { proto: TreatmentProtocol; summary: string }) {
+  const note = extraNote(proto.note, summary);
+  const rows = [
+    proto.energy ? ["에너지", proto.energy] : null,
+    proto.tip ? ["팁", proto.tip] : null,
+    proto.depth ? ["깊이", proto.depth] : null,
+    ["간격", proto.interval],
+    ["횟수", proto.sessions],
+  ].filter((row): row is [string, string] => Boolean(row));
+  return (
+    <div className="mt-3 grid gap-1">
+      {rows.map(([label, value]) => (
+        <p key={label} className="text-sm text-ink">
+          <span className="text-muted">{label} </span>
+          {value}
+        </p>
+      ))}
+      {note ? <p className="mt-1 text-sm text-ink/80">{note}</p> : null}
     </div>
   );
 }

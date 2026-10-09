@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { ageFromBirth, snapVisitTime, todayISO } from "./format";
+import { displayCopy } from "./memo";
 import { HOUSE_TREATMENTS } from "./procedures";
 import { clinicPersistStorage } from "./photo-storage";
 import type { DayBooking } from "./reservations";
@@ -69,13 +70,28 @@ export function paidOf(v: Visit) {
   return v.source === "cancel" ? 0 : (v.paidAmount ?? 0);
 }
 
-export function todaySales(visits: Visit[], date = todayISO()) {
-  return visits.filter((v) => v.date === date).reduce((sum, v) => sum + paidOf(v), 0);
+function sumPaid(rows: Visit[]) {
+  return rows.reduce((sum, v) => sum + paidOf(v), 0);
 }
 
-export function monthSales(visits: Visit[], isoOrPrefix?: string) {
-  const prefix = (isoOrPrefix ?? todayISO()).slice(0, 7);
-  return visits.filter((v) => v.date.startsWith(prefix)).reduce((sum, v) => sum + paidOf(v), 0);
+export function todaySales(visits: Visit[], date = todayISO()) {
+  return sumPaid(visits.filter((v) => v.date === date));
+}
+
+export function monthRange(iso = todayISO()) {
+  const day = iso.length >= 10 ? iso.slice(0, 10) : todayISO();
+  return { from: `${day.slice(0, 7)}-01`, to: day };
+}
+
+export function monthSales(visits: Visit[], iso = todayISO()) {
+  const { from, to } = monthRange(iso);
+  return sumPaid(visits.filter((v) => v.date >= from && v.date <= to));
+}
+
+export function paymentVisits(visits: Visit[], from: string, to: string) {
+  return visits
+    .filter((v) => v.source !== "cancel" && v.paidAmount != null && v.date >= from && v.date <= to)
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.time ?? "").localeCompare(b.time ?? ""));
 }
 
 export function cardBalance(visits: Visit[], patientId: string) {
@@ -299,7 +315,7 @@ export const useClinicStore = create<ClinicState>()(
             date: booking.date,
             time: booking.time,
             treatments: booking.treatments ?? [],
-            memo: booking.note && booking.note !== "다음 내원" ? booking.note : undefined,
+            memo: booking.note && booking.note !== "다음 내원" ? displayCopy(booking.note) : undefined,
             status: "consult",
           });
         }

@@ -41,7 +41,7 @@ export function sanitizeMemo(raw: string | undefined | null): string {
 
 export function memoToPlain(html: string | undefined | null): string {
   if (!html) return "";
-  return html
+  const plain = html
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n")
     .replace(/<[^>]+>/g, "")
@@ -52,4 +52,18 @@ export function memoToPlain(html: string | undefined | null): string {
     .replace(/&/g, "&")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+  return displayCopy(plain);
+}
+
+/** Turn leftover code field names in generated notes into Korean labels. */
+export function displayCopy(raw?: string | null): string {
+  if (!raw) return "";
+  return raw
+    .replace(/재내원\.\s*nextVisit\s*오늘\.?/gi, "재내원 · 다음 내원: 오늘")
+    .replace(/\bnextVisit\b/g, "다음 내원")
+    .replace(/\bpatientId\b/g, "손님")
+    .replace(/\bchartNo\b/g, "차트번호")
+    .replace(/\bpaidAmount\b/g, "결제")
+    .replace(/\brechargeAmount\b/g, "충전")
+    .replace(/\bredeemAmount\b/g, "차감");
 }

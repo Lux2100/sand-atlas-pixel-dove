@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatTime } from "@/lib/format";
-import { memoToPlain } from "@/lib/memo";
+import { displayCopy, memoToPlain } from "@/lib/memo";
 import type { DayBooking } from "@/lib/reservations";
 import { useClinicStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const missingChart = !booking.patientId;
   const chartMemo = memoToPlain(booking.chartMemo);
+  const noteText = displayCopy(booking.note);
 
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface px-3 py-3 sm:px-4">
@@ -42,11 +43,11 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
         {chartMemo ? <p className="mt-0.5 line-clamp-2 text-xs text-danger">{chartMemo}</p> : null}
         {booking.treatments?.length ? (
           <p className="mt-0.5 truncate text-xs text-muted">{booking.treatments.join(" · ")}</p>
-        ) : booking.note ? (
-          <p className="mt-0.5 truncate text-xs text-muted">{booking.note}</p>
+        ) : noteText ? (
+          <p className="mt-0.5 truncate text-xs text-muted">{noteText}</p>
         ) : null}
-        {booking.treatments?.length && booking.note ? (
-          <p className="mt-0.5 truncate text-xs text-muted">{booking.note}</p>
+        {booking.treatments?.length && noteText ? (
+          <p className="mt-0.5 truncate text-xs text-muted">{noteText}</p>
         ) : null}
       </div>
       <div className="ml-auto flex flex-wrap justify-end gap-1.5">

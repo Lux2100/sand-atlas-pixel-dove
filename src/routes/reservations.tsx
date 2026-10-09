@@ -30,7 +30,7 @@ function ReservationsPage() {
     <div className="grid gap-8">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs text-muted">예약관리</p>
+          <p className="text-xs text-muted">예약 관리</p>
           <h1 className="font-display text-4xl tracking-tight">오늘 · 내일</h1>
         </div>
         <Button onClick={() => setOpen(true)}>예약 추가</Button>

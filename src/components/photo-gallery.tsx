@@ -311,7 +311,7 @@ export function PhotoGallery({ patientId, patientName }: GalleryProps) {
           title={`${picked.length}장 비교`}
           className="w-full max-w-6xl"
         >
-          <div className={`mt-4 grid gap-2 ${picked.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+          <div className={`mt-4 grid gap-2 ${picked.length === 3 ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"}`}>
             {picked.map((p) => (
               <figure key={p.id} className="min-w-0">
                 <SafeImg src={p.url} alt="" className="max-h-[72dvh] w-full rounded-lg object-contain" />

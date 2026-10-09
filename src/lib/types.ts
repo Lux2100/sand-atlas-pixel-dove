@@ -14,6 +14,7 @@ export type TreatmentProtocol = {
   treatmentId: string;
   energy?: string;
   tip?: string;
+  depth?: string;
   interval: string;
   sessions: string;
   note?: string;

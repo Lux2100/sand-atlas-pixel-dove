@@ -10,7 +10,7 @@ import { memoToPlain } from "@/lib/memo";
 import { searchPatients } from "@/lib/patients";
 import { bookingsForDate, visitsOnDate, activeBookings, pendingBookings, type DayBooking } from "@/lib/reservations";
 import { homeRecommendedSets } from "@/lib/events";
-import { monthSales, todaySales, useClinicStore } from "@/lib/store";
+import { monthRange, monthSales, paymentVisits, todaySales, useClinicStore } from "@/lib/store";
 import type { Visit, VisitStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +33,13 @@ function Home() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [reserveOpen, setReserveOpen] = useState(false);
+  const [payScope, setPayScope] = useState<"today" | "month" | null>(null);
   const today = todayISO();
   const tomorrow = dayOffset(1);
+  const month = monthRange(today);
   const todayRev = todaySales(visits, today);
   const monthRev = monthSales(visits, today);
+  const payRows = paymentVisits(visits, payScope === "month" ? month.from : today, payScope === "month" ? month.to : today);
   const todayBooks = useMemo(
     () => pendingBookings(bookingsForDate(today, patients, visits, reservations), visits, today),
     [today, patients, visits, reservations],
@@ -60,10 +63,43 @@ function Home() {
           <h1 className="font-display text-4xl tracking-tight">{formatDate(today, "M월 d일 eeee")}</h1>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
-          <Stat label="오늘 매출" value={formatWon(todayRev)} />
-          <Stat label="이번달 매출" value={formatWon(monthRev)} />
+          <Stat
+            label="오늘 매출"
+            value={formatWon(todayRev)}
+            basisOpen={payScope === "today"}
+            onBasis={() => setPayScope((cur) => (cur === "today" ? null : "today"))}
+          />
+          <Stat
+            label="이번달 매출"
+            value={formatWon(monthRev)}
+            basisOpen={payScope === "month"}
+            onBasis={() => setPayScope((cur) => (cur === "month" ? null : "month"))}
+          />
         </div>
       </section>
+      {payScope ? (
+        <section className="grid gap-2 rounded-lg border border-border bg-surface px-3 py-3">
+          <h2 className="text-sm font-medium">{payScope === "today" ? "오늘 결제" : "이번달 결제"}</h2>
+          {payRows.length === 0 ? (
+            <p className="text-sm text-muted">이 기간의 결제 기록이 없습니다.</p>
+          ) : (
+            <ul className="grid gap-1">
+              {payRows.map((v) => {
+                const p = patients.find((x) => x.id === v.patientId);
+                return (
+                  <li key={v.id} className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                    <span className="min-w-0">
+                      <span className="tabular-nums text-muted">{payScope === "month" ? v.date.slice(5).replace("-", ".") : formatTime(v.time) ?? "시간미정"}</span>
+                      <span className="ml-2">{p?.name ?? "삭제된 차트"}</span>
+                    </span>
+                    <span className="tabular-nums">{formatWon(v.paidAmount ?? 0)}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <section className="grid gap-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -104,7 +140,7 @@ function Home() {
         <HeaderRow
           title="오늘 예약"
           count={todayBookCount}
-          action="예약추가"
+          action="예약 추가"
           onAction={() => setReserveOpen(true)}
         />
         {todayBooks.length === 0 ? (
@@ -234,7 +270,7 @@ function TodayVisitRow({
             key={s.id}
             type="button"
             className={cn(
-              "h-8 shrink-0 rounded-md border px-2.5 text-xs font-medium whitespace-nowrap",
+              "h-8 shrink-0 rounded-md border px-2.5 text-xs font-medium",
               status === s.id ? s.on : `bg-surface ${s.off}`,
             )}
             onClick={() => onStatus(s.id)}
@@ -266,11 +302,26 @@ function PatientRow({ id, name, chartNo, extra }: { id: string; name: string; ch
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  onBasis,
+  basisOpen,
+}: {
+  label: string;
+  value: string;
+  onBasis?: () => void;
+  basisOpen?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-border bg-surface px-2.5 py-3 sm:px-4">
+    <div className="min-w-0 rounded-lg border border-border bg-surface px-2.5 py-3 sm:px-4">
       <p className="text-xs text-muted">{label}</p>
-      <p className="font-medium tabular-nums">{value}</p>
+      <p className="font-medium tabular-nums break-all">{value}</p>
+      {onBasis ? (
+        <button type="button" className="mt-1 text-xs text-sage" aria-pressed={basisOpen} onClick={onBasis}>
+          결제 기록 기준
+        </button>
+      ) : null}
     </div>
   );
 }

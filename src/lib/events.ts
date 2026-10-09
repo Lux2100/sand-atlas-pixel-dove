@@ -106,7 +106,7 @@ export const CLINIC_SETS: ClinicSet[] = [
   C("redness", "concern", "홍조치료 세트", "혈관을 줄이고 장벽을 올리는 두 트랙.", ["브이빔", "M22", "리쥬란"], "3–4주 간격 4회", "혈관 + 장벽", [
     { timing: "1회차", title: "혈관", treatments: ["브이빔"], note: "자반 없는 파라미터." },
     { timing: "사이", title: "장벽", treatments: ["리쥬란"], note: "자극 관리." },
-    { timing: "3회차", title: "IPL 보조", treatments: ["M22"], note: "590–640." },
+    { timing: "3회차", title: "IPL 보조", treatments: ["M22"], note: "590–640nm." },
   ]),
   C("melasma", "concern", "기미치료 세트", "과에너지를 피하고 토닝과 재생, 홈케어를 묶는다.", ["큐레이저", "코스멜란", "리쥬란"], "주 1회 토닝 8회 + 프로그램", "저에너지 다횟수", [
     { timing: "매주", title: "토닝", treatments: ["큐레이저"], note: "기미는 낮게 여러 번." },

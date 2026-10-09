@@ -14,9 +14,12 @@ import { Route as AnalyzeRouteImport } from './routes/analyze'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ReservationsRouteImport } from './routes/reservations'
+import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TreatmentsRouteImport } from './routes/treatments'
 import { Route as PatientsIdRouteImport } from './routes/patients.$id'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -43,9 +46,19 @@ const GalleryRoute = GalleryRouteImport.update({
   path: '/gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReservationsRoute = ReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffRoute = StaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TreatmentsRoute = TreatmentsRouteImport.update({
@@ -58,6 +71,11 @@ const PatientsIdRoute = PatientsIdRouteImport.update({
   path: '/patients/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,9 +83,12 @@ export interface FileRoutesByFullPath {
   '/charts': typeof ChartsRoute
   '/events': typeof EventsRoute
   '/gallery': typeof GalleryRoute
+  '/login': typeof LoginRoute
   '/reservations': typeof ReservationsRoute
+  '/staff': typeof StaffRoute
   '/treatments': typeof TreatmentsRoute
   '/patients/$id': typeof PatientsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,9 +96,12 @@ export interface FileRoutesByTo {
   '/charts': typeof ChartsRoute
   '/events': typeof EventsRoute
   '/gallery': typeof GalleryRoute
+  '/login': typeof LoginRoute
   '/reservations': typeof ReservationsRoute
+  '/staff': typeof StaffRoute
   '/treatments': typeof TreatmentsRoute
   '/patients/$id': typeof PatientsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,9 +110,12 @@ export interface FileRoutesById {
   '/charts': typeof ChartsRoute
   '/events': typeof EventsRoute
   '/gallery': typeof GalleryRoute
+  '/login': typeof LoginRoute
   '/reservations': typeof ReservationsRoute
+  '/staff': typeof StaffRoute
   '/treatments': typeof TreatmentsRoute
   '/patients/$id': typeof PatientsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,9 +125,12 @@ export interface FileRouteTypes {
     | '/charts'
     | '/events'
     | '/gallery'
+    | '/login'
     | '/reservations'
+    | '/staff'
     | '/treatments'
     | '/patients/$id'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,9 +138,12 @@ export interface FileRouteTypes {
     | '/charts'
     | '/events'
     | '/gallery'
+    | '/login'
     | '/reservations'
+    | '/staff'
     | '/treatments'
     | '/patients/$id'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
@@ -118,9 +151,12 @@ export interface FileRouteTypes {
     | '/charts'
     | '/events'
     | '/gallery'
+    | '/login'
     | '/reservations'
+    | '/staff'
     | '/treatments'
     | '/patients/$id'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -129,9 +165,12 @@ export interface RootRouteChildren {
   ChartsRoute: typeof ChartsRoute
   EventsRoute: typeof EventsRoute
   GalleryRoute: typeof GalleryRoute
+  LoginRoute: typeof LoginRoute
   ReservationsRoute: typeof ReservationsRoute
+  StaffRoute: typeof StaffRoute
   TreatmentsRoute: typeof TreatmentsRoute
   PatientsIdRoute: typeof PatientsIdRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -171,11 +210,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reservations': {
       id: '/reservations'
       path: '/reservations'
       fullPath: '/reservations'
       preLoaderRoute: typeof ReservationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/treatments': {
@@ -192,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -201,9 +261,12 @@ const rootRouteChildren: RootRouteChildren = {
   ChartsRoute: ChartsRoute,
   EventsRoute: EventsRoute,
   GalleryRoute: GalleryRoute,
+  LoginRoute: LoginRoute,
   ReservationsRoute: ReservationsRoute,
+  StaffRoute: StaffRoute,
   TreatmentsRoute: TreatmentsRoute,
   PatientsIdRoute: PatientsIdRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

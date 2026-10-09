@@ -362,7 +362,7 @@ export function makeSeed(): ClinicSeed {
       phone: "010-8901-5566",
       patientId: "p-seoyeon",
       treatments: ["브이빔"],
-      note: "재내원. nextVisit 오늘.",
+      note: "재내원 · 다음 내원: 오늘",
     },
     {
       id: "r-minji",

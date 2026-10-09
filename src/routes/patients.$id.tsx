@@ -6,7 +6,7 @@ import { VisitFormDialog } from "@/components/visit-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ageFromBirth, formatDate, formatTime, formatWon } from "@/lib/format";
-import { memoToPlain } from "@/lib/memo";
+import { displayCopy, memoToPlain } from "@/lib/memo";
 import { cardBalance, useClinicStore } from "@/lib/store";
 import type { Consult, Visit } from "@/lib/types";
 
@@ -72,7 +72,7 @@ function PatientChart() {
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="rounded-lg border border-border bg-surface px-4 py-3 text-right">
-            <p className="text-[11px] text-muted">회원카드 잔액</p>
+            <p className="text-xs text-muted">회원카드 잔액</p>
             <p className="text-lg font-medium tabular-nums">{formatWon(balance)}</p>
           </div>
           <div className="flex flex-wrap justify-end gap-2">
@@ -139,7 +139,7 @@ function PatientChart() {
                   </div>
                 </div>
                 {v.memo ? (
-                  <div className="memo-body mt-3 text-sm leading-relaxed text-ink/90" dangerouslySetInnerHTML={{ __html: v.memo }} />
+                  <div className="memo-body mt-3 text-sm leading-relaxed text-ink/90" dangerouslySetInnerHTML={{ __html: displayCopy(v.memo) }} />
                 ) : null}
                 <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
                   {v.paidAmount ? <span>결제 {formatWon(v.paidAmount)}</span> : null}
@@ -218,14 +218,14 @@ function PatientChart() {
 }
 
 function ConsultList({ consults, onRemove }: { consults: Consult[]; onRemove: (id: string) => void }) {
-  if (consults.length === 0) return <p className="text-sm text-muted">저장된 AI 상담이 없습니다.</p>;
+  if (consults.length === 0) return <p className="text-sm text-muted">저장된 AI상담이 없습니다.</p>;
   return (
     <ol className="grid gap-3">
       {consults.map((c) => (
         <li key={c.id} className="rounded-xl border border-border bg-surface p-4 shadow-card">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs text-sage">AI 상담</p>
+              <p className="text-xs text-sage">AI상담</p>
               <p className="text-sm font-medium">{formatDate(c.date, "yyyy.MM.dd (EEE)")}</p>
             </div>
             <Button size="sm" variant="ghost" onClick={() => onRemove(c.id)}>
@@ -260,7 +260,7 @@ function Ledger({ visits }: { visits: Visit[] }) {
     });
   const totalPaid = visits.reduce((s, v) => s + (v.paidAmount ?? 0), 0);
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+    <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-border bg-surface">
       <p className="px-3 py-2 text-xs text-muted">누적 결제 {formatWon(totalPaid)}</p>
       <table className="w-full min-w-[640px] text-left text-sm">
         <thead className="text-xs text-muted">
