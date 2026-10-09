@@ -149,8 +149,9 @@ function completionHtml(message: PopupMessage): string {
   try { if (el && el.textContent) msg = JSON.parse(el.textContent); } catch (e) {}
   try {
     if (window.opener) window.opener.postMessage(msg, window.location.origin);
+    else window.location.replace("/");
   } catch (e) {}
-  try { window.close(); } catch (e) {}
+  try { if (window.opener) window.close(); } catch (e) {}
 })();
 </script>
 </body>
