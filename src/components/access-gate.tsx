@@ -7,6 +7,9 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { getMyAccess, type AccessView } from "@/lib/staff-api";
 import { LoginScreen } from "@/components/login-screen";
 
+/** Login is paused. The clinic opens without an account until this is turned off. */
+const LOGIN_PAUSED = true;
+
 type StaffAccess = AccessView & { ready: boolean };
 
 const OPEN: StaffAccess = {
@@ -83,7 +86,7 @@ export function AccessGate({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authEnabled) return;
+    if (LOGIN_PAUSED || !authEnabled) return;
     if (isPending) return;
     if (!user) {
       setAccess({ ...OPEN, ready: true, allowed: false });
@@ -119,7 +122,7 @@ export function AccessGate({ children }: { children: ReactNode }) {
   }, [isPending, user]);
 
   let body: ReactNode;
-  if (!authEnabled) body = children;
+  if (LOGIN_PAUSED || !authEnabled) body = children;
   else if (error && !access.ready) {
     body = (
       <main className="grid min-h-dvh place-items-center bg-bg px-6">

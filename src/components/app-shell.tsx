@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, ClipboardList, Ellipsis, Home, Images, Layers, ScanFace, Sparkles, Users } from "lucide-react";
 import { AccountBar, useStaffAccess } from "@/components/access-gate";
+import { authEnabled } from "@/lib/auth/client";
 import { useClinicStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +58,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [more, setMore] = useState(false);
   const access = useStaffAccess();
-  const showStaff = access.role === "director" || (access.allowed && !access.configured);
+  const showStaff =
+    authEnabled && (access.role === "director" || (access.allowed && !access.configured));
   const moreActive = MORE.some((item) => isActive(pathname, item.to)) || (showStaff && isActive(pathname, "/staff"));
 
   return (
