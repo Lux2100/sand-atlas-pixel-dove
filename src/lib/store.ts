@@ -25,11 +25,18 @@ export type ClinicData = {
 /** Additive patches for `aura-clinic-v6`. Never drops collections or changes the persist key. */
 export function migrateClinicSnapshot(persisted: Partial<ClinicData> | undefined, current: ClinicData): ClinicData {
   const p = persisted ?? {};
+  const photos = (p.photos ?? current.photos).filter((photo) => {
+    const url = photo.url ?? "";
+    return url.length > 0 && !url.startsWith("/gallery/") && !url.endsWith(".svg");
+  });
+  const photoIds = new Set(photos.map((photo) => photo.id));
   return {
     patients: p.patients ?? current.patients,
     visits: p.visits ?? current.visits,
-    photos: p.photos ?? current.photos,
-    showcases: p.showcases ?? current.showcases,
+    photos,
+    showcases: (p.showcases ?? current.showcases).filter(
+      (item) => photoIds.has(item.beforePhotoId) && photoIds.has(item.afterPhotoId),
+    ),
     reservations: p.reservations ?? current.reservations,
     consults: p.consults ?? current.consults,
     houseIds: p.houseIds?.length ? p.houseIds : current.houseIds,
@@ -64,6 +71,9 @@ export type ClinicState = ClinicData & {
   isHouse: (treatmentId: string) => boolean;
   setVisitStatus: (id: string, status: VisitStatus) => void;
   setScratchNote: (note: string) => void;
+  noteStatus: "idle" | "saving" | "saved";
+  noteSavedAt: string;
+  setNoteStatus: (status: "idle" | "saving" | "saved", savedAt?: string) => void;
 };
 
 export function paidOf(v: Visit) {
@@ -106,6 +116,8 @@ export const useClinicStore = create<ClinicState>()(
   persist(
     (set, get) => ({
       ...seed,
+      noteStatus: "idle",
+      noteSavedAt: "",
 
       upsertPatient: (input) => {
         const id = input.id ?? uid("p-");
@@ -363,6 +375,10 @@ export const useClinicStore = create<ClinicState>()(
 
       setScratchNote: (note) => {
         set({ scratchNote: note });
+      },
+
+      setNoteStatus: (status, savedAt) => {
+        set({ noteStatus: status, noteSavedAt: savedAt ?? get().noteSavedAt });
       },
     }),
     {

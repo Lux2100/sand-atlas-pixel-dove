@@ -6,6 +6,8 @@ import type { DayBooking } from "@/lib/reservations";
 import { useClinicStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { PhoneNumber } from "@/components/phone-number";
 import { PatientFormDialog } from "@/components/patient-form-dialog";
 import { ReservationFormDialog } from "@/components/reservation-form-dialog";
 
@@ -20,6 +22,7 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
   const arriveBooking = useClinicStore((s) => s.arriveBooking);
   const [chartOpen, setChartOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const missingChart = !booking.patientId;
   const chartMemo = memoToPlain(booking.chartMemo);
   const noteText = displayCopy(booking.note);
@@ -40,7 +43,8 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
           {missingChart ? <Badge>신환 · 차트 없음</Badge> : null}
           {booking.cancelled ? <Badge className="bg-danger/10 text-danger">예약 취소</Badge> : null}
         </div>
-        {chartMemo ? <p className="mt-0.5 line-clamp-2 text-xs text-danger">{chartMemo}</p> : null}
+        {chartMemo ? <p className="mt-0.5 line-clamp-2 text-sm text-danger">{chartMemo}</p> : null}
+        {booking.phone ? <PhoneNumber phone={booking.phone} className="mt-0.5" /> : null}
         {booking.treatments?.length ? (
           <p className="mt-0.5 truncate text-xs text-muted">{booking.treatments.join(" · ")}</p>
         ) : noteText ? (
@@ -68,7 +72,10 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
           size="sm"
           variant="ghost"
           className={booking.cancelled ? "text-sage" : "text-danger hover:text-danger"}
-          onClick={() => onToggleCancel(booking)}
+          onClick={() => {
+            if (booking.cancelled) onToggleCancel(booking);
+            else setConfirmCancel(true);
+          }}
         >
           {booking.cancelled ? "취소 해제" : "예약 취소"}
         </Button>
@@ -111,6 +118,27 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
           cancelled: booking.cancelled,
         }}
       />
+      <Dialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+        <DialogContent title="예약 취소">
+          <p className="mt-3 text-sm text-muted">
+            {booking.name}님 {formatTime(booking.time) ?? "시간 미정"} 예약을 취소할까요?
+          </p>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setConfirmCancel(false)}>
+              닫기
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                onToggleCancel(booking);
+                setConfirmCancel(false);
+              }}
+            >
+              예약 취소
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </li>
   );
 }

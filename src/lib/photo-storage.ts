@@ -74,7 +74,6 @@ function slimUrl(id: string, url?: string): string {
 }
 
 function restoreUrl(id: string, url: string | undefined, blobs: Record<string, string>): string {
-  if (url === "/gallery/sujin-before.jpg") url = "/gallery/sujin-before.svg";
   if (url?.startsWith("idb:")) return blobs[url.slice(4)] ?? blobs[id] ?? "";
   if (!url || url.startsWith("blob:")) return blobs[id] ?? "";
   if (url.startsWith("data:")) return blobs[id] ?? url;

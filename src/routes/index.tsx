@@ -5,7 +5,7 @@ import { PatientFormDialog } from "@/components/patient-form-dialog";
 import { ReservationFormDialog } from "@/components/reservation-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { dayOffset, formatDate, formatTime, formatWon, todayISO } from "@/lib/format";
+import { dayOffset, formatDate, formatTime, formatWon, parseSearchDate, todayISO } from "@/lib/format";
 import { memoToPlain } from "@/lib/memo";
 import { searchPatients } from "@/lib/patients";
 import { bookingsForDate, visitsOnDate, activeBookings, pendingBookings, type DayBooking } from "@/lib/reservations";
@@ -13,6 +13,7 @@ import { homeRecommendedSets } from "@/lib/events";
 import { monthRange, monthSales, paymentVisits, todaySales, useClinicStore } from "@/lib/store";
 import type { Visit, VisitStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { PhoneNumber } from "@/components/phone-number";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -60,7 +61,16 @@ function Home() {
       <section className="grid gap-4 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <p className="text-xs tracking-wide text-muted">오늘</p>
-          <h1 className="font-display text-4xl tracking-tight">{formatDate(today, "M월 d일 eeee")}</h1>
+          <h1
+            className="text-4xl font-medium tracking-tight text-ink"
+            style={{
+              fontFamily: '"IBM Plex Sans KR", "Noto Sans KR", sans-serif',
+              fontVariantNumeric: "lining-nums tabular-nums",
+              fontFeatureSettings: '"lnum" 1, "tnum" 1',
+            }}
+          >
+            {formatDate(today, "M월 d일 eeee")}
+          </h1>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <Stat
@@ -120,11 +130,13 @@ function Home() {
         </div>
         {q.trim() ? (
           hits.length === 0 ? (
-            <Empty>검색 결과가 없습니다.</Empty>
+            <Empty>
+              {parseSearchDate(q.trim()) ? "해당 날짜에 내원 기록이 없어요." : `'${q.trim()}'에 맞는 손님이 없어요.`}
+            </Empty>
           ) : (
             <ul className="grid gap-2">
               {hits.map((p) => (
-                <PatientRow key={p.id} id={p.id} name={p.name} chartNo={p.chartNo} extra={p.hitLabel} />
+                <PatientRow key={p.id} id={p.id} name={p.name} chartNo={p.chartNo} phone={p.phone} extra={p.hitLabel} />
               ))}
             </ul>
           )
@@ -165,6 +177,7 @@ function Home() {
                   name={p?.name ?? "삭제된 차트"}
                   chartNo={p?.chartNo}
                   chartMemo={p?.memo}
+                  phone={p?.phone}
                   onOpen={() => p && navigate({ to: "/patients/$id", params: { id: p.id } })}
                   onStatus={(status) => setVisitStatus(v.id, status)}
                 />
@@ -237,6 +250,7 @@ function TodayVisitRow({
   name,
   chartNo,
   chartMemo,
+  phone,
   onOpen,
   onStatus,
 }: {
@@ -244,6 +258,7 @@ function TodayVisitRow({
   name: string;
   chartNo?: string;
   chartMemo?: string;
+  phone?: string;
   onOpen: () => void;
   onStatus: (status: VisitStatus) => void;
 }) {
@@ -252,18 +267,21 @@ function TodayVisitRow({
   const chartText = memoToPlain(chartMemo);
   return (
     <li className="grid gap-2 rounded-lg border border-border bg-surface px-3 py-3 sm:px-4">
-      <button type="button" className="min-w-0 text-left hover:text-sage" onClick={onOpen}>
-        <span className="flex flex-wrap items-baseline gap-2">
-          <span className="tabular-nums text-sm text-sage">{formatTime(visit.time) ?? "시간미정"}</span>
-          <span className="font-medium">{name}</span>
-          {chartNo ? <span className="text-xs text-muted">{chartNo}</span> : null}
-        </span>
-        {chartText ? <p className="mt-1 line-clamp-2 text-sm text-danger">{chartText}</p> : null}
-        {memo ? <p className="mt-1 line-clamp-2 text-sm text-ink/80">{memo}</p> : null}
-        {visit.treatments.length ? (
-          <p className="mt-1 truncate text-xs text-muted">{visit.treatments.join(" · ")}</p>
-        ) : null}
-      </button>
+      <div className="flex items-start justify-between gap-2">
+        <button type="button" className="min-w-0 flex-1 text-left hover:text-sage" onClick={onOpen}>
+          <span className="flex flex-wrap items-baseline gap-2">
+            <span className="tabular-nums text-sm text-sage">{formatTime(visit.time) ?? "시간미정"}</span>
+            <span className="font-medium">{name}</span>
+            {chartNo ? <span className="text-xs text-muted">{chartNo}</span> : null}
+          </span>
+          {chartText ? <p className="mt-1 line-clamp-2 text-sm text-danger">{chartText}</p> : null}
+          {memo ? <p className="mt-1 line-clamp-2 text-sm text-ink/80">{memo}</p> : null}
+          {visit.treatments.length ? (
+            <p className="mt-1 truncate text-xs text-muted">{visit.treatments.join(" · ")}</p>
+          ) : null}
+        </button>
+        {phone ? <PhoneNumber phone={phone} /> : null}
+      </div>
       <div className="flex flex-wrap justify-end gap-1">
         {VISIT_STATUSES.map((s) => (
           <button
@@ -283,21 +301,22 @@ function TodayVisitRow({
   );
 }
 
-function PatientRow({ id, name, chartNo, extra }: { id: string; name: string; chartNo: string; extra?: string }) {
+function PatientRow({ id, name, chartNo, phone, extra }: { id: string; name: string; chartNo: string; phone?: string; extra?: string }) {
   const navigate = useNavigate();
   return (
-    <li>
+    <li className="flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-3">
       <button
         type="button"
-        className="flex w-full items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 text-left hover:border-sage/40"
+        className="flex min-w-0 flex-1 items-center justify-between text-left hover:text-sage"
         onClick={() => navigate({ to: "/patients/$id", params: { id } })}
       >
-        <span>
+        <span className="min-w-0">
           <span className="font-medium">{name}</span>
           {chartNo ? <span className="ml-2 text-xs text-muted">{chartNo}</span> : null}
         </span>
-        {extra ? <span className="text-xs text-sage">{extra}</span> : null}
+        {extra ? <span className="ml-3 truncate text-xs text-sage">{extra}</span> : null}
       </button>
+      {phone ? <PhoneNumber phone={phone} /> : null}
     </li>
   );
 }

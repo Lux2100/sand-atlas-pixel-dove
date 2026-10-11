@@ -29,6 +29,8 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
   const [chartNo, setChartNo] = useState("");
   const [gender, setGender] = useState<"F" | "M" | "">("");
   const [patientId, setPatientId] = useState<string | undefined>();
+  const [guestMode, setGuestMode] = useState<"" | "existing" | "new">("");
+  const [pick, setPick] = useState("");
   const [treatments, setTreatments] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const fromChart = useRef(false);
@@ -45,6 +47,8 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
     setChartNo(initial?.chartNo ?? linked?.chartNo ?? "");
     setGender(initial?.gender ?? linked?.gender ?? "");
     setPatientId(initial?.patientId);
+    setGuestMode(initial?.patientId ? "existing" : "");
+    setPick("");
     setTreatments(initial?.treatments ?? []);
     setNote(displayCopy(initial?.note ?? ""));
     fromChart.current = Boolean(initial?.patientId);
@@ -118,23 +122,19 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
   const submit = () => {
     const trimmed = name.trim();
     if (!trimmed || !date) return;
-    const no = chartNo.trim();
     let linkedId = patientId;
-    if (!linkedId) {
-      const exact = no
-        ? patients.find((p) => p.chartNo.trim().toLowerCase() === no.toLowerCase())
-        : undefined;
-      if (exact) {
-        linkedId = exact.id;
-      } else if (!initial?.patientId) {
+    if (guestMode === "existing") {
+      if (!linkedId) return;
+    } else if (guestMode === "new") {
+      if (!linkedId) {
         linkedId = upsertPatient({
           name: trimmed,
           phone: phone.trim() || undefined,
-          chartNo: no,
+          chartNo: chartNo.trim(),
           gender: gender || undefined,
         }).id;
       }
-    }
+    } else return;
     upsertReservation({
       id: initial?.id ?? uid("r"),
       date,
@@ -142,7 +142,7 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
       name: trimmed,
       phone: phone.trim() || undefined,
       patientId: linkedId,
-      chartNo: no || undefined,
+      chartNo: chartNo.trim() || undefined,
       gender: gender || undefined,
       treatments: treatments.length ? treatments : undefined,
       note: note.trim(),
@@ -171,6 +171,69 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
               <TimeSelect value={time} onChange={(next) => setTime(clinicTime(next))} minHour={8} maxHour={20} />
             </div>
           </div>
+          <div className="grid gap-2">
+            <Label>손님</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={guestMode === "existing" ? "default" : "outline"}
+                onClick={() => {
+                  setGuestMode("existing");
+                  setPatientId(initial?.patientId);
+                  const linked = initial?.patientId ? patients.find((p) => p.id === initial.patientId) : undefined;
+                  if (linked) applyPatient(linked);
+                }}
+              >
+                기존 손님
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={guestMode === "new" ? "default" : "outline"}
+                onClick={() => {
+                  setGuestMode("new");
+                  setPatientId(undefined);
+                  fromChart.current = false;
+                  setName("");
+                  setPhone("");
+                  setChartNo("");
+                  setGender("");
+                }}
+              >
+                새 손님
+              </Button>
+            </div>
+            {guestMode === "existing" ? (
+              <div className="grid gap-2">
+                <Input value={pick} onChange={(e) => setPick(e.target.value)} placeholder="이름 또는 차트번호" />
+                <ul className="max-h-40 overflow-y-auto rounded-md border border-border">
+                  {patients
+                    .filter((p) => {
+                      const q = pick.trim().toLowerCase();
+                      if (!q) return true;
+                      return p.name.toLowerCase().includes(q) || p.chartNo.toLowerCase().includes(q);
+                    })
+                    .slice(0, 8)
+                    .map((p) => (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-2"
+                          onClick={() => applyPatient(p)}
+                        >
+                          <span>{p.name}</span>
+                          <span className="text-xs text-muted">{p.chartNo}</span>
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+                {selected ? <p className="text-sm text-sage">선택됨 · {selected.name} {selected.chartNo}</p> : <p className="text-sm text-muted">손님을 선택해 주세요.</p>}
+              </div>
+            ) : null}
+          </div>
+          {guestMode === "new" ? (
+          <div className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>차트번호</Label>
@@ -252,6 +315,8 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
             <Label>전화</Label>
             <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-" />
           </div>
+          </div>
+          ) : null}
           <div className="grid gap-1.5">
             <Label>시술</Label>
             <TreatmentPicker value={treatments} onChange={setTreatments} />
@@ -264,7 +329,7 @@ export function ReservationFormDialog({ open, onOpenChange, initial }: Props) {
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               닫기
             </Button>
-            <Button type="submit" disabled={!name.trim()}>
+            <Button type="submit" disabled={!name.trim() || guestMode === "" || (guestMode === "existing" && !patientId)}>
               저장
             </Button>
           </div>

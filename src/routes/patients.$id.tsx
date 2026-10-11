@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PatientFormDialog } from "@/components/patient-form-dialog";
 import { PhotoGallery } from "@/components/photo-gallery";
+import { PhoneNumber } from "@/components/phone-number";
 import { VisitFormDialog } from "@/components/visit-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -66,7 +67,12 @@ function PatientChart() {
             {patient.chartNo || "번호 없음"}
             {age != null ? ` · ${age}세` : ""}
             {patient.gender ? ` · ${patient.gender === "F" ? "여" : "남"}` : ""}
-            {patient.phone ? ` · ${patient.phone}` : ""}
+            {patient.phone ? (
+              <>
+                {" · "}
+                <PhoneNumber phone={patient.phone} />
+              </>
+            ) : null}
           </p>
           {patient.memo ? <p className="mt-2 max-w-xl text-sm text-ink/80">{patient.memo}</p> : null}
         </div>

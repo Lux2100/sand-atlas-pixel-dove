@@ -295,6 +295,21 @@ export function PhotoGallery({ patientId, patientName }: GalleryProps) {
                   className="h-10 w-40"
                 />
               </div>
+              <div className="grid gap-1.5">
+                <Label>구분</Label>
+                <div className="flex flex-wrap gap-1">
+                  {(["before", "after", "other"] as const).map((k) => (
+                    <Button
+                      key={k}
+                      size="sm"
+                      variant={view.kind === k ? "soft" : "outline"}
+                      onClick={() => updatePhoto(view.id, { kind: k })}
+                    >
+                      {KIND_LABEL[k]}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               {view.note ? <p className="text-sm text-muted">{view.note}</p> : null}
             </div>
           ) : null}
@@ -354,27 +369,39 @@ export function PhotoGallery({ patientId, patientName }: GalleryProps) {
   );
 }
 
+function isChartPhoto(url: string) {
+  return Boolean(url) && !url.startsWith("/gallery/") && !url.startsWith("blob:");
+}
+
 export function ShowcaseStrip() {
-  const showcases = useClinicStore((s) => s.showcases);
   const photos = useClinicStore((s) => s.photos);
   const patients = useClinicStore((s) => s.patients);
+  const rows = photos.filter((p) => (p.kind === "before" || p.kind === "after") && isChartPhoto(p.url));
 
-  if (showcases.length === 0) {
-    return <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted">차트에서 전후 사진을 고정하면 여기에 모입니다.</p>;
+  if (rows.length === 0) {
+    return (
+      <div className="grid justify-items-center gap-3 rounded-lg border border-dashed border-border px-4 py-8 text-center">
+        <p className="text-sm text-muted">차트 사진 탭에서 전후 사진을 지정해 주세요</p>
+        <Link to="/charts" className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-ink">
+          차트로 이동
+        </Link>
+      </div>
+    );
   }
 
   return (
     <ul className="grid gap-4 sm:grid-cols-2">
-      {showcases.map((s) => {
-        const patient = patients.find((p) => p.id === s.patientId);
+      {rows.map((p) => {
+        const patient = patients.find((item) => item.id === p.patientId);
         return (
-          <li key={s.id}>
-            <ShowcaseCard
-              showcase={s}
-              photos={photos}
-              caption={patient ? `${patient.name} · ${patient.chartNo || "번호 없음"}` : s.title}
-              href={s.patientId}
-            />
+          <li key={p.id}>
+            <Link to="/patients/$id" params={{ id: p.patientId }} className="block overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+              <SafeImg src={p.url} alt="" className="aspect-[4/5] w-full object-cover" />
+              <div className="flex items-center justify-between gap-2 px-3 py-2">
+                <p className="min-w-0 truncate text-sm font-medium">{patient ? `${patient.name} · ${patient.chartNo || "번호 없음"}` : "손님"}</p>
+                <span className="shrink-0 text-xs text-muted">{p.kind === "before" ? "전" : "후"}</span>
+              </div>
+            </Link>
           </li>
         );
       })}

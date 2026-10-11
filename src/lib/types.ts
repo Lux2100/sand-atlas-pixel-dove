@@ -18,6 +18,10 @@ export type TreatmentProtocol = {
   interval: string;
   sessions: string;
   note?: string;
+  effect?: string;
+  duration?: string;
+  recovery?: string;
+  difference?: string;
 };
 
 export type Patient = {

@@ -6,17 +6,17 @@
   --color-surface: #fbf8f2;
   --color-surface-2: #eee7db;
   --color-ink: #1c1915;
-  --color-muted: #5c564e;
-  --color-subtle: #6b645b;
+  --color-muted: #3a342e;
+  --color-subtle: #4a443c;
   --color-sage: #3e5a4c;
   --color-sage-fg: #f6f2ea;
   --color-sage-soft: #e4ebe6;
   --color-border: #ddd4c6;
   --color-danger: #a61b1b;
   --color-ring: #3e5a4c;
-  --color-consult: #d46a2c;
+  --color-consult: #8f3f10;
   --color-consult-fg: #fff8f3;
-  --color-prep: #2f7a45;
+  --color-prep: #1e5c34;
   --color-prep-fg: #f3faf5;
   --color-done: #1c1915;
   --color-done-fg: #f6f2ea;
@@ -35,15 +35,39 @@
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: "lnum" 1, "tnum" 1;
   }
   html, body, #app {
     min-height: 100%;
     background: var(--color-bg);
     color: var(--color-ink);
   }
-  body { font-family: var(--font-sans); }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
   button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
   input, select, textarea { max-width: 100%; min-width: 0; }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+.font-display,
+.tabular-nums {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
 }
 
 .memo-body span[style*="#a61b1b"] { color: var(--color-danger); }
+
+@media (max-width: 768px) {
+  .aura-sidebar { display: none !important; }
+}
+@media (min-width: 769px) {
+  .aura-sidebar { display: flex !important; }
+  .aura-tabbar, .aura-more { display: none !important; }
+}

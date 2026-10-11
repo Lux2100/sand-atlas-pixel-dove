@@ -14,6 +14,16 @@ import { Textarea } from "@/components/ui/textarea";
 
 const AI_NOTICE = "AI 제안은 참고용이며, 진단·시술 여부와 용량은 반드시 의료진이 최종 판단합니다.";
 
+function planHint(hasPhoto: boolean, consent: boolean, needsChart: boolean) {
+  const parts: string[] = [];
+  if (!hasPhoto) parts.push("사진을 추가");
+  if (!consent) parts.push("동의에 체크");
+  if (needsChart) parts.push("연결할 차트를 선택");
+  if (parts.length === 0) return null;
+  if (parts.length === 1) return `${parts[0]}해 주세요`;
+  return `${parts.slice(0, -1).join("하고 ")}하고 ${parts[parts.length - 1]}해 주세요`;
+}
+
 export const Route = createFileRoute("/analyze")({
   validateSearch: (search: Record<string, unknown>): { patientId?: string } => {
     const patientId = typeof search.patientId === "string" ? search.patientId : undefined;
@@ -45,6 +55,7 @@ function AnalyzePage() {
   const [pq, setPq] = useState("");
   const [savedId, setSavedId] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const selected = patients.find((p) => p.id === patientId);
   const matches = useMemo(() => searchPatients(patients, visits, pq).slice(0, 6), [patients, visits, pq]);
   const catalog = useMemo(
@@ -55,6 +66,13 @@ function AnalyzePage() {
       }).join("\n"),
     [houseIds],
   );
+
+  const addFiles = async (list: FileList | File[]) => {
+    const files = Array.from(list).slice(0, 4);
+    const urls: string[] = [];
+    for (const file of files) urls.push(await compressImage(file));
+    setImages((prev) => [...prev, ...urls].slice(0, 4));
+  };
 
   const saveToChart = (analysis: FaceAnalysis, pid: string) => {
     const consult = addConsult({
@@ -149,25 +167,53 @@ function AnalyzePage() {
             type="file"
             accept="image/*"
             multiple
-            className="hidden"
-            onChange={async (e) => {
+            className="sr-only"
+            onChange={(e) => {
               const files = Array.from(e.target.files ?? []);
               e.target.value = "";
-              const urls: string[] = [];
-              for (const file of files.slice(0, 4)) urls.push(await compressImage(file));
-              setImages((prev) => [...prev, ...urls].slice(0, 4));
+              if (files.length) void addFiles(files);
             }}
           />
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              사진 추가
-            </Button>
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="사진 추가"
+            onClick={() => fileRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileRef.current?.click();
+              }
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              if (e.dataTransfer.files.length) void addFiles(e.dataTransfer.files);
+            }}
+            className={`rounded-lg border border-dashed px-4 py-6 ${dragOver ? "border-sage bg-sage-soft" : "border-border"}`}
+          >
             {images.length > 0 ? (
-              <Button variant="ghost" onClick={() => setImages([])}>
-                지우기
-              </Button>
-            ) : null}
+              <ul className="grid grid-cols-2 gap-3">
+                {images.map((src, i) => (
+                  <li key={i} className="overflow-hidden rounded-lg border border-border">
+                    <img src={src} alt="" className="aspect-square w-full object-cover" />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-center text-sm text-muted">정면 사진을 올리려면 여기를 누르거나 파일을 끌어다 놓으세요.</p>
+            )}
           </div>
+          {images.length > 0 ? (
+            <Button variant="ghost" onClick={() => setImages([])}>
+              지우기
+            </Button>
+          ) : null}
           <label className="flex items-start gap-2 text-sm text-ink">
             <input
               type="checkbox"
@@ -177,27 +223,17 @@ function AnalyzePage() {
             />
             <span>환자에게 사진 촬영·분석 동의를 받았습니다.</span>
           </label>
-          {images.length > 0 ? (
-            <ul className="grid grid-cols-2 gap-3">
-              {images.map((src, i) => (
-                <li key={i} className="overflow-hidden rounded-lg border border-border">
-                  <img src={src} alt="" className="aspect-square w-full object-cover" />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted">정면 사진을 올리면 분석이 정확합니다.</p>
-          )}
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="손님이 말한 고민, 최근 시술" />
           <p className="rounded-lg border border-sage/30 bg-sage-soft px-3 py-2 text-sm text-ink">{AI_NOTICE}</p>
           <Button disabled={busy || !consent || images.length === 0 || (linkChart && !patientId)} onClick={() => void run()}>
             {busy ? "분석 중…" : linkChart ? "분석하고 차트에 저장" : "시술 계획 보기"}
           </Button>
-          {!consent ? <p className="text-xs text-muted">사진 동의를 확인해야 시술 계획을 볼 수 있습니다.</p> : null}
+          {planHint(images.length > 0, consent, linkChart && !patientId) ? (
+            <p className="text-sm text-ink">{planHint(images.length > 0, consent, linkChart && !patientId)}</p>
+          ) : null}
         </div>
         <div className="rounded-xl border border-border bg-surface p-5 md:sticky md:top-6 md:min-h-[28rem]">
-          <p className="rounded-lg border border-sage/30 bg-sage-soft px-3 py-2 text-sm text-ink">{AI_NOTICE}</p>
-          <p className="mt-4 text-xs text-muted">시술 계획</p>
+          <p className="text-xs text-muted">시술 계획</p>
           {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
           {savedId && selected ? (
             <div className="mt-3 flex items-center justify-between rounded-lg bg-sage-soft px-3 py-2">
