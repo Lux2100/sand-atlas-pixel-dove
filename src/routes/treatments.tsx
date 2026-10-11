@@ -91,7 +91,12 @@ function TreatmentsPage() {
                       <Badge>{CATEGORY_LABEL[t.category]}</Badge>
                       {house ? <Badge tone="sage">주력</Badge> : null}
                     </div>
-                    <GuideFacts proto={proto} showDifference={t.id === "lituo" || t.id === "qlaser"} />
+                    <GuideFacts
+                      summary={t.summary}
+                      concerns={t.concerns}
+                      proto={proto}
+                      showDifference={t.id === "lituo" || t.id === "qlaser"}
+                    />
                   </div>
                   <Button size="sm" variant={house ? "default" : "outline"} onClick={() => toggleHouse(t.id)}>
                     {house ? "주력 해제" : "주력"}
@@ -111,16 +116,49 @@ function dash(value?: string) {
   return text ? text : "-";
 }
 
-function GuideFacts({ proto, showDifference }: { proto?: TreatmentProtocol; showDifference: boolean }) {
+function extraNote(note: string | undefined, summary: string) {
+  if (!note || summary.includes(note)) return "";
+  const parts = note
+    .split(/(?<=[.。])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const kept = parts.filter((part) => {
+    const core = part.replace(/[.。]$/, "").trim();
+    return core.length > 1 && !summary.includes(core);
+  });
+  return kept.join(" ");
+}
+
+function originalEffect(summary: string, concerns: string[], proto?: TreatmentProtocol) {
+  const parts = [summary.trim()];
+  const note = extraNote(proto?.note, summary);
+  if (note) parts.push(note);
+  if (proto?.depth) parts.push(`깊이 ${proto.depth}`);
+  if (concerns.length) parts.push(concerns.join(" · "));
+  return dash(parts.filter(Boolean).join(" "));
+}
+
+function GuideFacts({
+  summary,
+  concerns,
+  proto,
+  showDifference,
+}: {
+  summary: string;
+  concerns: string[];
+  proto?: TreatmentProtocol;
+  showDifference: boolean;
+}) {
   const rows: [string, string][] = [
-    ["주요 효과", dash(proto?.effect)],
+    ["주요 효과", originalEffect(summary, concerns, proto)],
     ["에너지/방식", dash(proto?.energy)],
     ["팁", dash(proto?.tip)],
-    ["시술 시간", dash(proto?.duration)],
-    ["회복 기간", dash(proto?.recovery)],
+    ["시술 시간", "-"],
+    ["회복 기간", "-"],
     ["권장 주기", dash(proto?.interval)],
+    ["권장 횟수", dash(proto?.sessions)],
   ];
-  if (showDifference) rows.push(["차이점", dash(proto?.difference)]);
+  if (showDifference) rows.push(["차이점", "-"]);
   return (
     <dl className="mt-3 grid gap-1">
       {rows.map(([label, value]) => (
