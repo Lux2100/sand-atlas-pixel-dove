@@ -138,13 +138,13 @@ function GuideFacts({
     ["에너지/방식", dash(proto?.energy)],
     ["팁", dash(proto?.tip)],
     ["메모", dash(proto?.note)],
-    ["시술 시간", "-"],
-    ["회복 기간", "-"],
+    ["시술 시간", dash(proto?.duration)],
+    ["회복 기간", dash(proto?.recovery)],
     ["권장 주기", dash(proto?.interval)],
     ["권장 횟수", dash(proto?.sessions)],
   ];
   if (proto?.depth) rows.splice(4, 0, ["깊이", proto.depth]);
-  if (showDifference) rows.push(["차이점", "-"]);
+  if (showDifference) rows.push(["차이점", dash(proto?.difference)]);
   return (
     <dl className="mt-3 grid gap-1 text-sm">
       {rows.map(([label, value]) => (

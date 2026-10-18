@@ -130,7 +130,7 @@ export function makeSeed(): ClinicSeed {
       date: today,
       time: "10:20",
       treatments: ["큐레이저", "리투오"],
-      memo: "★ 원내 토닝+리투오. 선크림 재교육.",
+      memo: "★ 큐레이저는 레이저 토닝, 리투오는 주사. 선크림 재교육.",
       paidAmount: 220000,
       nextVisit: dayOffset(14),
     },
@@ -307,7 +307,7 @@ export function makeSeed(): ClinicSeed {
         plan: [
           { order: 1, timing: "당일", title: "토닝 시작", treatments: ["큐레이저"], note: "테스트 스팟 후 풀페이스." },
           { order: 2, timing: "2주 후", title: "프락셀", treatments: ["프락셀", "엑소좀"], note: "다운타임 고지." },
-          { order: 3, timing: "6주 후", title: "유지 토닝", treatments: ["리투오", "큐레이저"], note: "원내  Dual." },
+          { order: 3, timing: "6주 후", title: "유지", treatments: ["큐레이저", "리투오"], note: "토닝은 큐레이저. 리투오는 ECM 주사." },
         ],
       },
     },

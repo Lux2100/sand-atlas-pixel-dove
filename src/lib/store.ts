@@ -22,7 +22,27 @@ export type ClinicData = {
   scratchNote: string;
 };
 
-/** Additive patches for `aura-clinic-v6`. Never drops collections or changes the persist key. */
+const LEGACY_TREATMENT_NAMES: Record<string, string> = {
+  리투오레이저: "리투오",
+};
+
+function mapTreatmentName(name: string) {
+  return LEGACY_TREATMENT_NAMES[name] ?? name;
+}
+
+function mapTreatmentList(names: string[] | undefined) {
+  if (!names) return names;
+  let changed = false;
+  const next = names.map((name) => {
+    const mapped = mapTreatmentName(name);
+    if (mapped !== name) changed = true;
+    return mapped;
+  });
+  return changed ? next : names;
+}
+
+/** Catalog updates stay in code. Stored patients, visits, payments, and reservations are kept.
+ *  Only an obsolete alias (리투오레이저) is renamed so old rows still open as 리투오. */
 export function migrateClinicSnapshot(persisted: Partial<ClinicData> | undefined, current: ClinicData): ClinicData {
   const p = persisted ?? {};
   const photos = (p.photos ?? current.photos).filter((photo) => {
@@ -30,15 +50,39 @@ export function migrateClinicSnapshot(persisted: Partial<ClinicData> | undefined
     return url.length > 0 && !url.startsWith("/gallery/") && !url.endsWith(".svg");
   });
   const photoIds = new Set(photos.map((photo) => photo.id));
+  const visits = (p.visits ?? current.visits).map((visit) => {
+    const treatments = mapTreatmentList(visit.treatments);
+    return treatments === visit.treatments ? visit : { ...visit, treatments: treatments ?? visit.treatments };
+  });
+  const reservations = (p.reservations ?? current.reservations).map((reservation) => {
+    const treatments = mapTreatmentList(reservation.treatments);
+    return treatments === reservation.treatments ? reservation : { ...reservation, treatments };
+  });
+  const consults = (p.consults ?? current.consults).map((consult) => {
+    const analysis = consult.analysis;
+    if (!analysis) return consult;
+    const recommendations = analysis.recommendations?.map((item) =>
+      item.name === "리투오레이저" ? { ...item, name: "리투오" } : item,
+    );
+    const plan = analysis.plan?.map((step) => {
+      const treatments = mapTreatmentList(step.treatments);
+      return treatments === step.treatments ? step : { ...step, treatments: treatments ?? step.treatments };
+    });
+    if (recommendations === analysis.recommendations && plan === analysis.plan) return consult;
+    return { ...consult, analysis: { ...analysis, recommendations: recommendations ?? analysis.recommendations, plan: plan ?? analysis.plan } };
+  });
   return {
     patients: p.patients ?? current.patients,
-    visits: p.visits ?? current.visits,
+    visits,
     photos,
-    showcases: (p.showcases ?? current.showcases).filter(
-      (item) => photoIds.has(item.beforePhotoId) && photoIds.has(item.afterPhotoId),
-    ),
-    reservations: p.reservations ?? current.reservations,
-    consults: p.consults ?? current.consults,
+    showcases: (p.showcases ?? current.showcases)
+      .filter((item) => photoIds.has(item.beforePhotoId) && photoIds.has(item.afterPhotoId))
+      .map((item) => {
+        const treatments = mapTreatmentList(item.treatments);
+        return treatments === item.treatments ? item : { ...item, treatments: treatments ?? item.treatments };
+      }),
+    reservations,
+    consults,
     houseIds: p.houseIds?.length ? p.houseIds : current.houseIds,
     scratchNote: typeof p.scratchNote === "string" ? p.scratchNote : "",
   };

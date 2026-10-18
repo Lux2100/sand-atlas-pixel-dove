@@ -81,6 +81,18 @@ export const FILLERS: Filler[] = [
     aliases: ["Juvederm", "주비덤"],
   },
   {
+    id: "radiesse",
+    name: "레디어스",
+    region: "GLOBAL",
+    maker: "Merz",
+    material: "CaHA",
+    duration: "12–18개월",
+    bestFor: "볼륨 · 윤곽 · 콜라겐 자극",
+    traits: ["CaHA", "콜라겐 자극", "볼륨"],
+    diff: "HA가 아니라 칼슘 입자로 볼륨과 콜라겐 자극을 함께 본다. 입술에는 쓰지 않는다.",
+    aliases: ["Radiesse", "라디에스"],
+  },
+  {
     id: "belotero",
     name: "벨로테로",
     region: "GLOBAL",

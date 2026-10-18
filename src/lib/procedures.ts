@@ -44,6 +44,9 @@ export const TREATMENTS: Treatment[] = [
   T("yvoire", "이브아르", "injectable", "LG 이브아르 HA. 윤곽·볼륨에 탄탄한 지지.", ["윤곽", "볼륨", "턱", "코"], {
     aliases: ["Yvoire", "이브아르 필러"],
   }),
+  T("radiesse", "레디어스", "injectable", "칼슘하이드록실아파타이트(CaHA) 필러. 즉각 볼륨과 콜라겐 자극.", ["볼륨", "콜라겐", "탄력", "윤곽"], {
+    aliases: ["Radiesse", "CaHA", "라디에스", "칼슘필러"],
+  }),
   T("botulinum", "보툴리눔 톡신", "injectable", "주름·사각턱·승모근 등 근육 이완 일반명.", ["주름", "사각턱", "승모근", "잔주름"], {
     aliases: ["톡신", "보툴리눔", "botulinum"],
   }),
@@ -163,9 +166,9 @@ export const TREATMENTS: Treatment[] = [
     aliases: ["Hengli", "란저우"],
   }),
 
-  T("lituo", "리투오", "laser", "원내 토닝·색소 레이저. 기미·잡티·톤 균일.", ["기미", "잡티", "톤", "색소"], {
+  T("lituo", "리투오", "injectable", "엘라비에 리투오. 인체 유래 무세포 동종진피(hADM) ECM 스킨부스터.", ["탄력", "밀도", "잔주름", "모공"], {
     house: true,
-    aliases: ["Lituo", "리투오레이저"],
+    aliases: ["Lituo", "Re2O", "엘라비에 리투오", "Elravie Re2O", "리투오레이저"],
   }),
   T("curejet", "큐어제트", "laser", "니들프리 제트 인젝터. 부스터를 균일 주입.", ["모공", "재생", "부스터", "흉터"], {
     house: true,
@@ -301,6 +304,16 @@ export function getTreatmentByName(name: string): Treatment | undefined {
     if (fold(t.name).includes(n) || n.includes(fold(t.name))) return true;
     return t.aliases?.some((a) => fold(a).includes(n) || n.includes(fold(a))) ?? false;
   });
+}
+
+export function treatmentLine(names: string[]): string {
+  return names
+    .map((name) => {
+      const t = getTreatmentByName(name);
+      if (!t) return name;
+      return `${name}(${CATEGORY_LABEL[t.category]})`;
+    })
+    .join(" · ");
 }
 
 export function matchesTreatment(t: Treatment, q: string): boolean {

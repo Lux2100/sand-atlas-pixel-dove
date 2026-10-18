@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatTime } from "@/lib/format";
+import { treatmentLine } from "@/lib/procedures";
 import { displayCopy, memoToPlain } from "@/lib/memo";
 import type { DayBooking } from "@/lib/reservations";
 import { useClinicStore } from "@/lib/store";
@@ -46,7 +47,7 @@ export function BookingRow({ booking, onToggleCancel }: Props) {
         {chartMemo ? <p className="mt-0.5 line-clamp-2 text-sm text-danger">{chartMemo}</p> : null}
         {booking.phone ? <PhoneNumber phone={booking.phone} className="mt-0.5" /> : null}
         {booking.treatments?.length ? (
-          <p className="mt-0.5 truncate text-xs text-muted">{booking.treatments.join(" · ")}</p>
+          <p className="mt-0.5 truncate text-xs text-muted">{treatmentLine(booking.treatments)}</p>
         ) : noteText ? (
           <p className="mt-0.5 truncate text-xs text-muted">{noteText}</p>
         ) : null}

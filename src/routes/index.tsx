@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookingRow } from "@/components/booking-row";
+import { treatmentLine } from "@/lib/procedures";
 import { PatientFormDialog } from "@/components/patient-form-dialog";
 import { ReservationFormDialog } from "@/components/reservation-form-dialog";
 import { Button } from "@/components/ui/button";
@@ -277,7 +278,7 @@ function TodayVisitRow({
           {chartText ? <p className="mt-1 line-clamp-2 text-sm text-danger">{chartText}</p> : null}
           {memo ? <p className="mt-1 line-clamp-2 text-sm text-ink/80">{memo}</p> : null}
           {visit.treatments.length ? (
-            <p className="mt-1 truncate text-xs text-muted">{visit.treatments.join(" · ")}</p>
+            <p className="mt-1 truncate text-xs text-muted">{treatmentLine(visit.treatments)}</p>
           ) : null}
         </button>
         {phone ? <PhoneNumber phone={phone} /> : null}
